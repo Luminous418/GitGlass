@@ -1,0 +1,96 @@
+name: Build iOS Luminous
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compilar en simulador
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Seleccionar Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+
+      - name: Listar schemes
+        run: xcodebuild -list -project Luminous.xcodeproj
+
+      - name: Compilar para simulador
+        run: |
+          xcodebuild \
+            -project Luminous.xcodeproj \
+            -scheme Luminous \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Subir app como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: Luminous-simulator
+          path: build/Build/Products/Debug-iphonesimulator/Luminous.app
+          if-no-files-found: error
+
+  release:
+    name: Archivo y firma (opcional)
+    runs-on: macos-14
+    needs: build
+    if: github.ref == 'refs/heads/main' && vars.ENABLE_SIGNED_RELEASE == 'true'
+
+    env:
+      CERTIFICATE_NAME: ${{ secrets.CERTIFICATE_NAME }}
+      PROFILE_UUID: ${{ secrets.PROFILE_UUID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Seleccionar Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+
+      - name: Instalar certificados
+        if: env.CERTIFICATE_NAME != ''
+        run: |
+          echo "${{ secrets.APPLE_CERT_BASE64 }}" | base64 --decode > /tmp/cert.p12
+          echo "${{ secrets.APPLE_CERT_PASSWORD }}" | security import /tmp/cert.p12 -k ~/Library/Keychains/login.keychain-db -P "${{ secrets.APPLE_CERT_PASSWORD }}" -T /usr/bin/codesign -A
+          security set-key-partition-list -S apple-tool:,apple: -k "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
+
+      - name: Instalar perfil de provisionamiento
+        if: env.PROFILE_UUID != ''
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/${{ secrets.PROFILE_UUID }}.mobileprovision
+
+      - name: Archivar app
+        run: |
+          xcodebuild \
+            -project Luminous.xcodeproj \
+            -scheme Luminous \
+            -configuration Release \
+            -archivePath build/Luminous.xcarchive \
+            -allowProvisioningUpdates \
+            archive
+
+      - name: Exportar IPA
+        run: |
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/Luminous.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist exportOptions.plist
+
+      - name: Subir IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Luminous-release
+          path: build/ipa/Luminous.ipa
+          if-no-files-found: error
