@@ -131,7 +131,7 @@ struct CommitsView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             if !GitHubService.shared.hasToken {
-                Text("Configura el secret GITHUB_PAT y vuelve a compilar.")
+                Text("Configura el secret PAT_PAT y vuelve a compilar.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

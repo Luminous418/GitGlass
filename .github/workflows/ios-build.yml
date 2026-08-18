@@ -83,9 +83,9 @@ jobs:
 
       - name: Inyectar token de GitHub
         env:
-          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+          PAT_PAT: ${{ secrets.PAT_PAT }}
         run: |
-          printf 'enum GitHubSecrets { static let token = "%s" }\n' "$GITHUB_PAT" > Luminous/GitHubSecrets.swift
+          printf 'enum GitHubSecrets { static let token = "%s" }\n' "$PAT_PAT" > Luminous/GitHubSecrets.swift
 
       - name: Archivar app
         run: |
