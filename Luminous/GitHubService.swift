@@ -82,9 +82,9 @@ struct GitHubService {
         return try JSONDecoder().decode([Repo].self, from: data)
     }
 
-    func fetchCommits(for repo: Repo) async throws -> [CommitItem] {
+    func fetchCommits(for repo: Repo, perPage: Int = 5) async throws -> [CommitItem] {
         let request = request("/repos/\(repo.fullName)/commits", query: [
-            URLQueryItem(name: "per_page", value: "5")
+            URLQueryItem(name: "per_page", value: "\(perPage)")
         ])
         let (data, response) = try await URLSession.shared.data(for: request)
         try validate(response)
