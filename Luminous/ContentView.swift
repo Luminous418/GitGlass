@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct ContentView: View {
     var body: some View {
@@ -39,6 +40,78 @@ struct MeshBackground: View {
     }
 }
 
+enum BackgroundStore {
+    static let key = "customBackgroundEnabled"
+    static let filename = "customBackground.jpg"
+
+    static var documentsURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    }
+
+    static var fileURL: URL {
+        documentsURL.appendingPathComponent(filename)
+    }
+
+    @discardableResult
+    static func save(_ image: UIImage) -> Bool {
+        guard let resized = resized(image),
+              let data = resized.jpegData(compressionQuality: 0.8) else { return false }
+        do {
+            try data.write(to: fileURL, options: .atomic)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    static func load() -> UIImage? {
+        UIImage(contentsOfFile: fileURL.path)
+    }
+
+    static func remove() {
+        try? FileManager.default.removeItem(at: fileURL)
+    }
+
+    static func resized(_ image: UIImage) -> UIImage? {
+        let maxDimension: CGFloat = 2000
+        let size = image.size
+        let largest = max(size.width, size.height)
+        guard largest > maxDimension else { return image }
+        let scale = maxDimension / largest
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+}
+
+struct AppBackground: View {
+    @AppStorage(BackgroundStore.key) private var customBackgroundEnabled = false
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack {
+            if customBackgroundEnabled, let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
+            } else {
+                MeshBackground()
+            }
+        }
+        .onAppear {
+            if customBackgroundEnabled {
+                image = BackgroundStore.load()
+            }
+        }
+        .onChange(of: customBackgroundEnabled) { _, enabled in
+            image = enabled ? BackgroundStore.load() : nil
+        }
+    }
+}
+
 struct GlassCard<Content: View>: View {
     var cornerRadius: CGFloat
     var content: Content
@@ -66,7 +139,7 @@ struct CommitsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                MeshBackground()
+                AppBackground()
                 content
             }
             .navigationTitle("Commits")
@@ -310,7 +383,7 @@ struct FavoritesView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                MeshBackground()
+                AppBackground()
                 content
             }
             .navigationTitle("Favoritos")
@@ -471,7 +544,7 @@ struct RepoCommitsView: View {
 
     var body: some View {
         ZStack {
-            MeshBackground()
+            AppBackground()
             content
         }
         .navigationTitle(repo.name)
@@ -610,11 +683,13 @@ struct SettingsView: View {
     @State private var pat = ""
     @State private var hasSavedPAT = false
     @State private var justSaved = false
+    @AppStorage(BackgroundStore.key) private var customBackgroundEnabled = false
+    @State private var selectedItem: PhotosPickerItem?
 
     var body: some View {
         NavigationStack {
             ZStack {
-                MeshBackground()
+                AppBackground()
                 ScrollView {
                     VStack(spacing: 16) {
                         GlassCard {
@@ -660,6 +735,41 @@ struct SettingsView: View {
                                             .foregroundStyle(.green)
                                     }
                                 }
+                            }
+                        }
+
+                        GlassCard {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Label("Fondo de la app", systemImage: "photo.on.rectangle.angled")
+                                    .font(.headline)
+
+                                PhotosPicker(selection: $selectedItem, matching: .images) {
+                                    Label("Elegir foto de fondo", systemImage: "photo")
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 6)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .onChange(of: selectedItem) { _, item in
+                                    guard let item else { return }
+                                    Task {
+                                        if let data = try? await item.loadTransferable(type: Data.self),
+                                           let image = UIImage(data: data),
+                                           BackgroundStore.save(image) {
+                                            customBackgroundEnabled = true
+                                        }
+                                    }
+                                }
+
+                                Button("Restaurar fondo predeterminado") {
+                                    BackgroundStore.remove()
+                                    customBackgroundEnabled = false
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(!customBackgroundEnabled)
+
+                                Text("El fondo elegido se guarda solo en este dispositivo.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
 
