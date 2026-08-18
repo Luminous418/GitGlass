@@ -59,12 +59,19 @@ jobs:
       - name: Seleccionar Xcode
         run: sudo xcode-select -s /Applications/Xcode_15.2.app
 
-      - name: Instalar certificados
-        if: env.CERTIFICATE_NAME != ''
+      - name: Crear keychain temporal e instalar certificado
+        env:
+          APPLE_CERT_BASE64: ${{ secrets.APPLE_CERT_BASE64 }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          echo "${{ secrets.APPLE_CERT_BASE64 }}" | base64 --decode > /tmp/cert.p12
-          echo "${{ secrets.APPLE_CERT_PASSWORD }}" | security import /tmp/cert.p12 -k ~/Library/Keychains/login.keychain-db -P "${{ secrets.APPLE_CERT_PASSWORD }}" -T /usr/bin/codesign -A
-          security set-key-partition-list -S apple-tool:,apple: -k "${{ secrets.KEYCHAIN_PASSWORD }}" ~/Library/Keychains/login.keychain-db
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          echo "$APPLE_CERT_BASE64" | base64 --decode > /tmp/cert.p12
+          security import /tmp/cert.p12 -P "$APPLE_CERT_PASSWORD" -A -t cert -f pkcs12 -k build.keychain
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
 
       - name: Instalar perfil de provisionamiento
         if: env.PROFILE_UUID != ''
