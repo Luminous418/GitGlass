@@ -96,6 +96,8 @@ struct AppBackground: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
                     .ignoresSafeArea()
             } else {
                 MeshBackground()
