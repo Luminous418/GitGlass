@@ -28,6 +28,9 @@ Ambos se generan desde la cuenta de desarrollador de Apple (o un servicio de fir
 | `CODE_SIGN_IDENTITY` | el mismo nombre del certificado |
 | `APPLE_CERT_PASSWORD` | contraseña del `.p12` |
 | `KEYCHAIN_PASSWORD` | contraseña del keychain temporal del runner (puede ser cualquiera) |
+| `GITHUB_PAT` | Personal Access Token de GitHub (fine-grained, solo lectura de repos) que la app usa para mostrar tus commits |
+
+**⚠️ Seguridad:** el `GITHUB_PAT` queda embebido en el binario de la app. Cualquiera con el `.ipa` podría extraerlo, así que solo úsalo en una app personal que no compartas. Revoca/rota el token si lo pierdes o compartes la app.
 
 **Variables:**
 

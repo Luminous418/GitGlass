@@ -1,14 +1,10 @@
 import SwiftUI
 
-enum AppTab: Hashable {
-    case home, favorites, settings
-}
-
 struct ContentView: View {
     var body: some View {
         TabView {
-            HomeView()
-                .tabItem { Label("Inicio", systemImage: "house.fill") }
+            CommitsView()
+                .tabItem { Label("Commits", systemImage: "arrow.triangle.branch") }
 
             FavoritesView()
                 .tabItem { Label("Favoritos", systemImage: "heart.fill") }
@@ -56,57 +52,95 @@ struct GlassCard<Content: View>: View {
     }
 }
 
-struct HomeView: View {
+struct CommitsView: View {
     @Environment(\.openURL) private var openURL
-    @State private var showShare = false
+    @State private var repos: [Repo] = []
+    @State private var commitsByRepo: [String: [CommitItem]] = [:]
+    @State private var loadState: LoadState = .loading
+
+    enum LoadState {
+        case loading, loaded, empty, failed(String)
+    }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 MeshBackground()
-                ScrollView {
-                    VStack(spacing: 16) {
-                        GlassCard {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Luminous")
-                                    .font(.system(size: 38, weight: .bold, design: .rounded))
-                                Text("Tu app base con Liquid Glass")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-
-                        GitHubCard {
-                            openGitHub()
-                        }
-
-                        HStack(spacing: 16) {
-                            featureCard(icon: "bolt.fill", title: "Rápida", color: .yellow)
-                            featureCard(icon: "shield.fill", title: "Segura", color: .green)
-                        }
-
-                        featureCard(icon: "sparkles", title: "Liquid Glass", color: .cyan)
-                    }
-                    .padding()
-                }
+                content
             }
-            .navigationTitle("Inicio")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showShare = true
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                }
-            }
-            .confirmationDialog("Compartir Luminous", isPresented: $showShare, titleVisibility: .visible) {
-                Button("Copiar enlace") {
-                    UIPasteboard.general.string = "https://luminous.app"
-                }
-                Button("Cancelar", role: .cancel) {}
-            }
+            .navigationTitle("Commits")
+            .task { await load() }
         }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch loadState {
+        case .loading:
+            ProgressView("Cargando repositorios...")
+        case .failed(let message):
+            errorView(message)
+        case .empty:
+            emptyView
+        case .loaded:
+            ScrollView {
+                VStack(spacing: 16) {
+                    GitHubCard {
+                        openGitHub()
+                    }
+                    ForEach(repos) { repo in
+                        RepoCard(
+                            repo: repo,
+                            commits: commitsByRepo[repo.fullName] ?? [],
+                            onOpenRepo: {
+                                if let url = URL(string: repo.htmlURL) {
+                                    openURL(url)
+                                }
+                            },
+                            onOpenCommit: { commit in
+                                if let url = URL(string: commit.htmlURL) {
+                                    openURL(url)
+                                }
+                            }
+                        )
+                    }
+                }
+                .padding()
+            }
+            .refreshable { await load() }
+        }
+    }
+
+    private var emptyView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "tray")
+                .font(.system(size: 40))
+                .foregroundStyle(.secondary)
+            Text("No hay repositorios")
+                .font(.headline)
+        }
+        .padding()
+    }
+
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 40))
+                .foregroundStyle(.orange)
+            Text(message)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+            if !GitHubService.shared.hasToken {
+                Text("Configura el secret GITHUB_PAT y vuelve a compilar.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Button("Reintentar") {
+                Task { await load() }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
     }
 
     private func openGitHub() {
@@ -114,16 +148,110 @@ struct HomeView: View {
         openURL(url)
     }
 
-    private func featureCard(icon: String, title: String, color: Color) -> some View {
-        GlassCard(cornerRadius: 20) {
-            VStack(alignment: .leading, spacing: 10) {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundStyle(color)
-                Text(title)
-                    .font(.headline)
+    private func load() async {
+        loadState = .loading
+        do {
+            let repos = try await GitHubService.shared.fetchRepos()
+            guard !repos.isEmpty else {
+                loadState = .empty
+                return
+            }
+
+            var commitsByRepo: [String: [CommitItem]] = [:]
+            await withTaskGroup(of: (String, [CommitItem]).self) { group in
+                for repo in repos {
+                    group.addTask {
+                        let commits = (try? await GitHubService.shared.fetchCommits(for: repo)) ?? []
+                        return (repo.fullName, commits)
+                    }
+                }
+                for await (fullName, commits) in group {
+                    commitsByRepo[fullName] = commits
+                }
+            }
+
+            self.repos = repos
+            self.commitsByRepo = commitsByRepo
+            loadState = .loaded
+        } catch {
+            loadState = .failed(error.localizedDescription)
+        }
+    }
+}
+
+struct RepoCard: View {
+    let repo: Repo
+    let commits: [CommitItem]
+    let onOpenRepo: () -> Void
+    let onOpenCommit: (CommitItem) -> Void
+
+    var body: some View {
+        GlassCard(cornerRadius: 24) {
+            VStack(alignment: .leading, spacing: 12) {
+                Button(action: onOpenRepo) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(repo.name)
+                                .font(.headline)
+                            if let description = repo.description, !description.isEmpty {
+                                Text(description)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                            }
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 4) {
+                            if let language = repo.language {
+                                Text(language)
+                                    .font(.caption2)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(.white.opacity(0.2), in: Capsule())
+                            }
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+
+                if commits.isEmpty {
+                    Text("Sin commits recientes")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Divider()
+                    ForEach(commits) { commit in
+                        Button {
+                            onOpenCommit(commit)
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(commit.message)
+                                        .font(.subheadline)
+                                        .lineLimit(2)
+                                        .multilineTextAlignment(.leading)
+                                    Text("\(commit.authorName) · \(relativeDate(commit.date))")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
             }
         }
+    }
+
+    private func relativeDate(_ iso: String) -> String {
+        guard let date = ISO8601DateFormatter().date(from: iso) else { return iso }
+        return date.formatted(.relative(presentation: .named))
     }
 }
 
