@@ -52,8 +52,7 @@ struct GlassCard<Content: View>: View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(20)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            .glassEffect(cornerRadius: cornerRadius)
+            .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius))
     }
 }
 
