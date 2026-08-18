@@ -49,6 +49,8 @@ jobs:
     env:
       CERTIFICATE_NAME: ${{ secrets.CERTIFICATE_NAME }}
       PROFILE_UUID: ${{ secrets.PROFILE_UUID }}
+      CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
+      BUNDLE_ID: app.nance5816.meteor1654
 
     steps:
       - name: Checkout
@@ -77,7 +79,10 @@ jobs:
             -scheme Luminous \
             -configuration Release \
             -archivePath build/Luminous.xcarchive \
-            -allowProvisioningUpdates \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
             archive
 
       - name: Exportar IPA
