@@ -1,4 +1,4 @@
-name: Build iOS Luminous
+name: Build GitGlass
 
 on:
   workflow_dispatch:
