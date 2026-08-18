@@ -20,7 +20,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		1A0000000000000000000003 /* Frameworks */ = {
+		1A0000000000000000000009 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -64,7 +64,7 @@
 			buildConfigurationList = 1A0000000000000000000014 /* Build configuration list for PBXNativeTarget "Luminous" */;
 			buildPhases = (
 				1A0000000000000000000002 /* Sources */,
-				1A0000000000000000000003 /* Frameworks */,
+				1A0000000000000000000009 /* Frameworks */,
 				1A0000000000000000000004 /* Resources */,
 			);
 			buildRules = (
