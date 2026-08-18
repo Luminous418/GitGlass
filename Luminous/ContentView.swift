@@ -591,7 +591,6 @@ struct EmptyStateView: View {
 }
 
 struct SettingsView: View {
-    @State private var notifications = true
     @State private var appearance = "Automático"
     @State private var pat = ""
     @State private var hasSavedPAT = false
@@ -649,9 +648,6 @@ struct SettingsView: View {
                             }
                         }
 
-                        GlassCard {
-                            Toggle("Notificaciones", isOn: $notifications)
-                        }
                         GlassCard {
                             Picker("Apariencia", selection: $appearance) {
                                 Text("Clara").tag("Clara")
