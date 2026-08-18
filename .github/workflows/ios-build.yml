@@ -81,12 +81,6 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "${{ secrets.PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/${{ secrets.PROFILE_UUID }}.mobileprovision
 
-      - name: Inyectar token de GitHub
-        env:
-          PAT_PAT: ${{ secrets.PAT_PAT }}
-        run: |
-          printf 'enum GitHubSecrets { static let token = "%s" }\n' "$PAT_PAT" > Luminous/GitHubSecrets.swift
-
       - name: Archivar app
         run: |
           xcodebuild \

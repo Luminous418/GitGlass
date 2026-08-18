@@ -556,7 +556,7 @@ struct ErrorView: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             if !GitHubService.shared.hasToken {
-                Text("Configura el secret PAT_PAT y vuelve a compilar.")
+                Text("Pega tu token de GitHub en Ajustes.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -593,6 +593,9 @@ struct EmptyStateView: View {
 struct SettingsView: View {
     @State private var notifications = true
     @State private var appearance = "Automático"
+    @State private var pat = ""
+    @State private var hasSavedPAT = false
+    @State private var justSaved = false
 
     var body: some View {
         NavigationStack {
@@ -600,6 +603,52 @@ struct SettingsView: View {
                 MeshBackground()
                 ScrollView {
                     VStack(spacing: 16) {
+                        GlassCard {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Label("Token de GitHub", systemImage: "key.fill")
+                                    .font(.headline)
+
+                                SecureField("Pega tu Personal Access Token", text: $pat)
+                                    .textFieldStyle(.roundedBorder)
+                                    .autocorrectionDisabled()
+                                    .textInputAutocapitalization(.never)
+
+                                Text("Se guarda solo en este dispositivo (Keychain). No queda embebido en la app ni se sube a GitHub.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                HStack(spacing: 12) {
+                                    Button("Guardar") {
+                                        GitHubAuth.token = pat
+                                        hasSavedPAT = !pat.isEmpty
+                                        justSaved = true
+                                        Task {
+                                            try? await Task.sleep(for: .seconds(2))
+                                            justSaved = false
+                                        }
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .disabled(pat.isEmpty || pat == GitHubAuth.token)
+
+                                    if hasSavedPAT {
+                                        Button("Borrar", role: .destructive) {
+                                            GitHubAuth.token = ""
+                                            pat = ""
+                                            hasSavedPAT = false
+                                        }
+                                        .buttonStyle(.bordered)
+                                    }
+
+                                    Spacer()
+
+                                    if justSaved {
+                                        Label("Guardado", systemImage: "checkmark.circle.fill")
+                                            .foregroundStyle(.green)
+                                    }
+                                }
+                            }
+                        }
+
                         GlassCard {
                             Toggle("Notificaciones", isOn: $notifications)
                         }
@@ -615,6 +664,10 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Ajustes")
+            .task {
+                pat = GitHubAuth.token
+                hasSavedPAT = !pat.isEmpty
+            }
         }
     }
 }

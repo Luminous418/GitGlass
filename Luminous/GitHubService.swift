@@ -1,4 +1,5 @@
 import Foundation
+import Security
 
 struct Repo: Decodable, Identifiable {
     let id: Int
@@ -55,7 +56,7 @@ struct GitHubService {
     static let shared = GitHubService()
 
     private let base = URL(string: "https://api.github.com")!
-    private let token = GitHubSecrets.token
+    private var token: String { GitHubAuth.token }
 
     var hasToken: Bool { !token.isEmpty }
 
@@ -119,6 +120,68 @@ enum GitHubError: LocalizedError {
             return "Límite de peticiones de GitHub alcanzado."
         case .other(let code):
             return "Error de GitHub (código \(code))."
+        }
+    }
+}
+
+struct KeychainHelper {
+    static let shared = KeychainHelper()
+
+    private let service = "com.luminous.Luminous"
+
+    func save(_ value: String, for key: String) {
+        guard let data = value.data(using: .utf8) else { return }
+        let baseQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        let updateQuery: [String: Any] = [kSecValueData as String: data]
+        let status = SecItemUpdate(baseQuery as CFDictionary, updateQuery as CFDictionary)
+        if status == errSecItemNotFound {
+            var addQuery = baseQuery
+            addQuery[kSecValueData as String] = data
+            SecItemAdd(addQuery as CFDictionary, nil)
+        }
+    }
+
+    func read(_ key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    func delete(_ key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+}
+
+enum GitHubAuth {
+    private static let key = "githubPat"
+
+    static var token: String {
+        get { KeychainHelper.shared.read(key) ?? "" }
+        set {
+            if newValue.isEmpty {
+                KeychainHelper.shared.delete(key)
+            } else {
+                KeychainHelper.shared.save(newValue, for: key)
+            }
         }
     }
 }
