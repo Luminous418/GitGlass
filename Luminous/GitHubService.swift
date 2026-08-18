@@ -40,11 +40,11 @@ struct CommitItem: Decodable, Identifiable {
 
     enum CodingKeys: String, CodingKey {
         case sha, commit
+        case htmlURL = "html_url"
     }
 
     enum CommitKeys: String, CodingKey {
         case message, author
-        case htmlURL = "html_url"
     }
 
     enum AuthorKeys: String, CodingKey {
@@ -56,7 +56,7 @@ struct CommitItem: Decodable, Identifiable {
         sha = try container.decode(String.self, forKey: .sha)
         let commit = try container.nestedContainer(keyedBy: CommitKeys.self, forKey: .commit)
         message = try commit.decode(String.self, forKey: .message)
-        htmlURL = try commit.decode(String.self, forKey: .htmlURL)
+        htmlURL = try container.decode(String.self, forKey: .htmlURL)
         let author = try commit.nestedContainer(keyedBy: AuthorKeys.self, forKey: .author)
         authorName = try author.decode(String.self, forKey: .name)
         date = try author.decode(String.self, forKey: .date)
