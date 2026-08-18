@@ -13,7 +13,6 @@ struct ContentView: View {
             SettingsView()
                 .tabItem { Label("Ajustes", systemImage: "gearshape.fill") }
         }
-        .background { AppBackground() }
     }
 }
 
@@ -145,6 +144,7 @@ struct CommitsView: View {
                 content
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background { AppBackground() }
             .navigationTitle("Commits")
             .task { await load() }
         }
@@ -389,6 +389,7 @@ struct FavoritesView: View {
                 content
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background { AppBackground() }
             .navigationTitle("Favoritos")
             .task { await load() }
         }
@@ -550,6 +551,7 @@ struct RepoCommitsView: View {
             content
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background { AppBackground() }
         .navigationTitle(repo.name)
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
@@ -780,6 +782,7 @@ struct SettingsView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background { AppBackground() }
             .navigationTitle("Ajustes")
             .task {
                 pat = GitHubAuth.token
