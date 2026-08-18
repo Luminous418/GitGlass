@@ -268,7 +268,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = app.nance5816.meteor1654;
 				PRODUCT_NAME = GitGlass;
 				INFOPLIST_KEY_CFBundleDisplayName = GitGlass;
@@ -295,7 +295,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = app.nance5816.meteor1654;
 				PRODUCT_NAME = GitGlass;
 				INFOPLIST_KEY_CFBundleDisplayName = GitGlass;

@@ -607,7 +607,6 @@ struct EmptyStateView: View {
 }
 
 struct SettingsView: View {
-    @State private var appearance = "Automático"
     @State private var pat = ""
     @State private var hasSavedPAT = false
     @State private var justSaved = false
@@ -664,13 +663,6 @@ struct SettingsView: View {
                             }
                         }
 
-                        GlassCard {
-                            Picker("Apariencia", selection: $appearance) {
-                                Text("Clara").tag("Clara")
-                                Text("Oscura").tag("Oscura")
-                                Text("Automático").tag("Automático")
-                            }
-                        }
                     }
                     .padding()
                 }
