@@ -10,14 +10,17 @@ on:
 jobs:
   build:
     name: Compilar en simulador
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Seleccionar Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+      - name: Seleccionar Xcode 26
+        run: |
+          XCODE_PATH=$(ls /Applications | grep -E '^Xcode_2[6-9]' | sort | tail -1)
+          echo "Usando $XCODE_PATH"
+          sudo xcode-select -s "/Applications/$XCODE_PATH"
 
       - name: Listar schemes
         run: xcodebuild -list -project Luminous.xcodeproj
@@ -28,7 +31,7 @@ jobs:
             -project Luminous.xcodeproj \
             -scheme Luminous \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build
@@ -42,7 +45,7 @@ jobs:
 
   release:
     name: Archivo y firma (opcional)
-    runs-on: macos-14
+    runs-on: macos-15
     needs: build
     if: github.ref == 'refs/heads/main' && vars.ENABLE_SIGNED_RELEASE == 'true'
 
@@ -56,8 +59,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Seleccionar Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+      - name: Seleccionar Xcode 26
+        run: |
+          XCODE_PATH=$(ls /Applications | grep -E '^Xcode_2[6-9]' | sort | tail -1)
+          echo "Usando $XCODE_PATH"
+          sudo xcode-select -s "/Applications/$XCODE_PATH"
 
       - name: Crear keychain temporal e instalar certificado
         env:

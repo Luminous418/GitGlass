@@ -1,71 +1,100 @@
 import SwiftUI
 
+enum AppTab: Hashable {
+    case home, favorites, settings
+}
+
 struct ContentView: View {
-    @State private var showSettings = false
-    @State private var showFavorites = false
+    var body: some View {
+        TabView {
+            HomeView()
+                .tabItem { Label("Inicio", systemImage: "house.fill") }
+
+            FavoritesView()
+                .tabItem { Label("Favoritos", systemImage: "heart.fill") }
+
+            SettingsView()
+                .tabItem { Label("Ajustes", systemImage: "gearshape.fill") }
+        }
+    }
+}
+
+struct MeshBackground: View {
+    var body: some View {
+        MeshGradient(
+            width: 3,
+            height: 3,
+            points: [
+                [0, 0], [0.5, 0], [1, 0],
+                [0, 0.5], [0.5, 0.5], [1, 0.5],
+                [0, 1], [0.5, 1], [1, 1]
+            ],
+            colors: [
+                .purple, .indigo, .cyan,
+                .mint, .blue, .teal,
+                .pink, .orange, .yellow
+            ]
+        )
+        .ignoresSafeArea()
+    }
+}
+
+struct GlassCard<Content: View>: View {
+    var cornerRadius: CGFloat
+    var content: Content
+
+    init(cornerRadius: CGFloat = 28, @ViewBuilder content: () -> Content) {
+        self.cornerRadius = cornerRadius
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(20)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .glassEffect(cornerRadius: cornerRadius)
+    }
+}
+
+struct HomeView: View {
     @State private var showShare = false
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
-                Text("Luminous")
-                    .font(.system(size: 44, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                Text("Tu app base está lista")
-                    .font(.headline)
-                    .foregroundStyle(.white.opacity(0.8))
+            ZStack {
+                MeshBackground()
+                ScrollView {
+                    VStack(spacing: 16) {
+                        GlassCard {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Luminous")
+                                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                                Text("Tu app base con Liquid Glass")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        HStack(spacing: 16) {
+                            featureCard(icon: "bolt.fill", title: "Rápida", color: .yellow)
+                            featureCard(icon: "shield.fill", title: "Segura", color: .green)
+                        }
+
+                        featureCard(icon: "sparkles", title: "Liquid Glass", color: .cyan)
+                    }
+                    .padding()
+                }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                LinearGradient(
-                    colors: [.purple, .indigo, .cyan],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .navigationTitle("Luminous")
+            .navigationTitle("Inicio")
             .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button {
-                        showFavorites = true
-                    } label: {
-                        Label("Favoritos", systemImage: "heart")
-                    }
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Label("Ajustes", systemImage: "gearshape")
-                    }
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showShare = true
                     } label: {
-                        Label("Compartir", systemImage: "square.and.arrow.up")
+                        Image(systemName: "square.and.arrow.up")
                     }
                 }
-            }
-            .sheet(isPresented: $showSettings) {
-                VStack(spacing: 12) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.purple)
-                    Text("Ajustes")
-                        .font(.title2.bold())
-                    Text("Aquí irá la configuración de Luminous.")
-                        .foregroundStyle(.secondary)
-                }
-                .presentationDetents([.medium])
-            }
-            .sheet(isPresented: $showFavorites) {
-                VStack(spacing: 12) {
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.pink)
-                    Text("Favoritos")
-                        .font(.title2.bold())
-                    Text("Tus elementos guardados aparecerán aquí.")
-                        .foregroundStyle(.secondary)
-                }
-                .presentationDetents([.medium])
             }
             .confirmationDialog("Compartir Luminous", isPresented: $showShare, titleVisibility: .visible) {
                 Button("Copiar enlace") {
@@ -74,7 +103,70 @@ struct ContentView: View {
                 Button("Cancelar", role: .cancel) {}
             }
         }
-        .preferredColorScheme(.dark)
+    }
+
+    private func featureCard(icon: String, title: String, color: Color) -> some View {
+        GlassCard(cornerRadius: 20) {
+            VStack(alignment: .leading, spacing: 10) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(color)
+                Text(title)
+                    .font(.headline)
+            }
+        }
+    }
+}
+
+struct FavoritesView: View {
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                MeshBackground()
+                GlassCard {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 30))
+                            .foregroundStyle(.pink)
+                        Text("Favoritos")
+                            .font(.title2.bold())
+                        Text("Tus elementos guardados aparecerán aquí.")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Favoritos")
+        }
+    }
+}
+
+struct SettingsView: View {
+    @State private var notifications = true
+    @State private var appearance = "Automático"
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                MeshBackground()
+                ScrollView {
+                    VStack(spacing: 16) {
+                        GlassCard {
+                            Toggle("Notificaciones", isOn: $notifications)
+                        }
+                        GlassCard {
+                            Picker("Apariencia", selection: $appearance) {
+                                Text("Clara").tag("Clara")
+                                Text("Oscura").tag("Oscura")
+                                Text("Automático").tag("Automático")
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Ajustes")
+        }
     }
 }
 
