@@ -32,13 +32,6 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Subir app como artefacto
-        uses: actions/upload-artifact@v4
-        with:
-          name: GitGlass-simulator
-          path: build/Build/Products/Debug-iphonesimulator/GitGlass.app
-          if-no-files-found: error
-
   release:
     name: Archivo y firma (opcional)
     runs-on: macos-15
