@@ -1,9 +1,11 @@
-# Luminous
+# GitGlass
 
-App de prueba en SwiftUI para experimentar con iOS. Nada serio, solo jugando con el Liquid Glass y la firma/sideload desde GitHub Actions.
+App de prueba en SwiftUI para experimentar con iOS. Su propósito es mostrar tus repositorios de GitHub y el historial de commits con una estética Liquid Glass (iOS 26).
 
 - SwiftUI + Liquid Glass (iOS 26)
-- Tab bar: Inicio, Favoritos, Ajustes
+- Tab bar: Commits, Favoritos, Ajustes
+- En **Commits** ves tus repos con sus últimos commits; en **Favoritos** seleccionas repos para acceder rápido a su historial completo
+- El token de GitHub se pega en **Ajustes** y se guarda en el Keychain del dispositivo (no queda embebido en la app)
 - Build y `.ipa` firmado mediante el workflow de `.github/workflows/ios-build.yml` (solo se lanza manualmente)
 
 Para replicarlo se necesita una cuenta de desarrollador de Apple (y el certificado/provisioning profile correspondiente).

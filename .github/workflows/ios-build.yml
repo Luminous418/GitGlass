@@ -35,8 +35,8 @@ jobs:
       - name: Subir app como artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: Luminous-simulator
-          path: build/Build/Products/Debug-iphonesimulator/Luminous.app
+          name: GitGlass-simulator
+          path: build/Build/Products/Debug-iphonesimulator/GitGlass.app
           if-no-files-found: error
 
   release:
@@ -126,6 +126,6 @@ jobs:
       - name: Subir IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Luminous-release
-          path: build/ipa/Luminous.ipa
+          name: GitGlass-release
+          path: build/ipa/GitGlass.ipa
           if-no-files-found: error
