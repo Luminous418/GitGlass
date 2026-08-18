@@ -57,6 +57,7 @@ struct GlassCard<Content: View>: View {
 }
 
 struct HomeView: View {
+    @Environment(\.openURL) private var openURL
     @State private var showShare = false
 
     var body: some View {
@@ -73,6 +74,10 @@ struct HomeView: View {
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
+                        }
+
+                        GitHubCard {
+                            openGitHub()
                         }
 
                         HStack(spacing: 16) {
@@ -104,6 +109,11 @@ struct HomeView: View {
         }
     }
 
+    private func openGitHub() {
+        guard let url = URL(string: "https://github.com/Luminous418") else { return }
+        openURL(url)
+    }
+
     private func featureCard(icon: String, title: String, color: Color) -> some View {
         GlassCard(cornerRadius: 20) {
             VStack(alignment: .leading, spacing: 10) {
@@ -114,6 +124,46 @@ struct HomeView: View {
                     .font(.headline)
             }
         }
+    }
+}
+
+struct GitHubCard: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            GlassCard {
+                HStack(spacing: 16) {
+                    AsyncImage(url: URL(string: "https://avatars.githubusercontent.com/u/107070993?v=4")) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(width: 56, height: 56)
+                    .clipShape(Circle())
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Luminous418")
+                            .font(.headline)
+                        Text("Visita mi GitHub")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "arrow.up.right")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
