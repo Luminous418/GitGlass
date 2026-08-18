@@ -19,6 +19,18 @@ struct Repo: Decodable, Identifiable {
     }
 }
 
+struct GitHubUser: Decodable {
+    let login: String
+    let avatarURL: String
+    let htmlURL: String
+
+    enum CodingKeys: String, CodingKey {
+        case login
+        case avatarURL = "avatar_url"
+        case htmlURL = "html_url"
+    }
+}
+
 struct CommitItem: Decodable, Identifiable {
     let sha: String
     let message: String
@@ -71,6 +83,13 @@ struct GitHubService {
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
         return request
+    }
+
+    func fetchUser() async throws -> GitHubUser {
+        let request = request("/user")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response)
+        return try JSONDecoder().decode(GitHubUser.self, from: data)
     }
 
     func fetchRepos() async throws -> [Repo] {

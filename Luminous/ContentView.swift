@@ -60,6 +60,7 @@ struct CommitsView: View {
     @Environment(\.openURL) private var openURL
     @State private var repos: [Repo] = []
     @State private var commitsByRepo: [String: [CommitItem]] = [:]
+    @State private var user: GitHubUser?
     @State private var loadState: LoadState = .loading
 
     var body: some View {
@@ -91,7 +92,7 @@ struct CommitsView: View {
         case .loaded:
             ScrollView {
                 VStack(spacing: 16) {
-                    GitHubCard {
+                    GitHubCard(user: user) {
                         openGitHub()
                     }
                     ForEach(repos) { repo in
@@ -118,13 +119,14 @@ struct CommitsView: View {
     }
 
     private func openGitHub() {
-        guard let url = URL(string: "https://github.com/Luminous418") else { return }
+        guard let url = URL(string: user?.htmlURL ?? "https://github.com/Luminous418") else { return }
         openURL(url)
     }
 
     private func load() async {
         loadState = .loading
         do {
+            user = (try? await GitHubService.shared.fetchUser())
             let repos = try await GitHubService.shared.fetchRepos()
             guard !repos.isEmpty else {
                 loadState = .empty
@@ -239,28 +241,45 @@ struct CommitRowView: View {
 }
 
 struct GitHubCard: View {
+    let user: GitHubUser?
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             GlassCard {
                 HStack(spacing: 16) {
-                    AsyncImage(url: URL(string: "https://avatars.githubusercontent.com/u/107070993?v=4")) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    } placeholder: {
+                    if let user {
+                        AsyncImage(url: URL(string: user.avatarURL)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(width: 56, height: 56)
+                        .clipShape(Circle())
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(user.login)
+                                .font(.headline)
+                        }
+                    } else {
                         Image(systemName: "person.crop.circle.fill")
                             .resizable()
                             .scaledToFit()
                             .foregroundStyle(.secondary)
-                    }
-                    .frame(width: 56, height: 56)
-                    .clipShape(Circle())
+                            .frame(width: 56, height: 56)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Luminous418")
-                            .font(.headline)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Tu perfil")
+                                .font(.headline)
+                            Text("Configura tu token en Ajustes")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     }
 
                     Spacer()
