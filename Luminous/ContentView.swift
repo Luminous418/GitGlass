@@ -261,9 +261,6 @@ struct GitHubCard: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Luminous418")
                             .font(.headline)
-                        Text("Visita mi GitHub")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
                     }
 
                     Spacer()
