@@ -85,6 +85,7 @@ jobs:
             -project Luminous.xcodeproj \
             -scheme Luminous \
             -configuration Release \
+            -destination 'generic/platform=iOS' \
             -archivePath build/Luminous.xcarchive \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
