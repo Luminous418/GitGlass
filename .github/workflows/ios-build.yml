@@ -94,7 +94,27 @@ jobs:
             archive
 
       - name: Exportar IPA
+        env:
+          PROFILE_UUID: ${{ secrets.PROFILE_UUID }}
+          BUNDLE_ID: app.nance5816.meteor1654
         run: |
+          cat > exportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>development</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>$BUNDLE_ID</key>
+                  <string>$PROFILE_UUID</string>
+              </dict>
+          </dict>
+          </plist>
+          EOF
           xcodebuild \
             -exportArchive \
             -archivePath build/Luminous.xcarchive \
