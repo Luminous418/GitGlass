@@ -63,7 +63,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1A0000000000000000000014 /* Build configuration list for PBXNativeTarget "Luminous" */;
 			buildPhases = (
-				1A0000000000000000000002 /* Sources */,
+				1A000000000000000000000E /* Sources */,
 				1A0000000000000000000009 /* Frameworks */,
 				1A000000000000000000000F /* Resources */,
 			);
@@ -121,7 +121,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		1A0000000000000000000002 /* Sources */ = {
+		1A000000000000000000000E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
