@@ -139,14 +139,16 @@ struct CommitsView: View {
     @State private var loadState: LoadState = .loading
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                content
+        ZStack {
+            AppBackground()
+            NavigationStack {
+                ZStack {
+                    content
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationTitle("Commits")
+                .task { await load() }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { AppBackground() }
-            .navigationTitle("Commits")
-            .task { await load() }
         }
     }
 
@@ -384,14 +386,16 @@ struct FavoritesView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                content
+        ZStack {
+            AppBackground()
+            NavigationStack {
+                ZStack {
+                    content
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .navigationTitle("Favoritos")
+                .task { await load() }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { AppBackground() }
-            .navigationTitle("Favoritos")
-            .task { await load() }
         }
     }
 
@@ -692,14 +696,16 @@ struct SettingsView: View {
     @State private var selectedItem: PhotosPickerItem?
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                ScrollView {
-                    VStack(spacing: 16) {
-                        GlassCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Label("Token de GitHub", systemImage: "key.fill")
-                                    .font(.headline)
+        ZStack {
+            AppBackground()
+            NavigationStack {
+                ZStack {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            GlassCard {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Label("Token de GitHub", systemImage: "key.fill")
+                                        .font(.headline)
 
                                 SecureField("Pega tu Personal Access Token", text: $pat)
                                     .textFieldStyle(.roundedBorder)
@@ -782,11 +788,11 @@ struct SettingsView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { AppBackground() }
             .navigationTitle("Ajustes")
             .task {
                 pat = GitHubAuth.token
                 hasSavedPAT = !pat.isEmpty
+            }
             }
         }
     }
