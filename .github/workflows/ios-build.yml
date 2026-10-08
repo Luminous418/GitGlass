@@ -42,7 +42,7 @@ jobs:
       CERTIFICATE_NAME: ${{ secrets.CERTIFICATE_NAME }}
       PROFILE_UUID: ${{ secrets.PROFILE_UUID }}
       CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
-      BUNDLE_ID: app.nance5816.meteor1654
+      BUNDLE_ID: app.feijoa8170.hare8540
 
     steps:
       - name: Checkout
@@ -91,7 +91,7 @@ jobs:
       - name: Exportar IPA
         env:
           PROFILE_UUID: ${{ secrets.PROFILE_UUID }}
-          BUNDLE_ID: app.nance5816.meteor1654
+          BUNDLE_ID: app.feijoa8170.hare8540
         run: |
           cat > exportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>

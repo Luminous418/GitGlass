@@ -269,7 +269,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.13;
-				PRODUCT_BUNDLE_IDENTIFIER = app.nance5816.meteor1654;
+				PRODUCT_BUNDLE_IDENTIFIER = app.feijoa8170.hare8540;
 				PRODUCT_NAME = GitGlass;
 				INFOPLIST_KEY_CFBundleDisplayName = GitGlass;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -296,7 +296,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.13;
-				PRODUCT_BUNDLE_IDENTIFIER = app.nance5816.meteor1654;
+				PRODUCT_BUNDLE_IDENTIFIER = app.feijoa8170.hare8540;
 				PRODUCT_NAME = GitGlass;
 				INFOPLIST_KEY_CFBundleDisplayName = GitGlass;
 				SWIFT_EMIT_LOC_STRINGS = YES;
